@@ -22,7 +22,7 @@ def readAD():
 	ch3 = adc.readADCSingleEnded(2, gain, sps) / 1000
 	ch4 = adc.readADCSingleEnded(3, gain, sps) / 1000
 	
-	out = "%s ch0: %.6f, ch2: %.6f, ch3: %.6f, ch4: %.6f" % (t, ch1, ch2, ch3, ch4)	
+	out = "%s,%.6f,%.6f,%.6f,%.6f" % (t, ch1, ch2, ch3, ch4)	
 
 	with open(filename, "a") as file:
 		file.write(out + "\n")
