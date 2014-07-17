@@ -23,12 +23,12 @@ def readAD():
 	except Exception:
 		pass
 
-	ch1 = adc1.readADCSingleEnded(0, gain, sps) / 1000
-	ch2 = adc1.readADCSingleEnded(1, gain, sps) / 1000
-	ch3 = adc1.readADCSingleEnded(2, gain, sps) / 1000
-	ch4 = adc1.readADCSingleEnded(3, gain, sps) / 1000
-
-	out = "%s,%.6f,%.6f,%.6f,%.6f" % (t, ch1, ch2, ch3, ch4)	
+	ch1 = adc1.readADCSingleEnded(0, gain, sps)
+	ch2 = adc1.readADCSingleEnded(1, gain, sps)
+	ch3 = adc1.readADCSingleEnded(2, gain, sps)
+	ch4 = adc1.readADCSingleEnded(3, gain, sps)
+	
+	out = "%s,%.2f,%.2f,%.2f,%.2f" % (t,voltToTemp(ch1),voltToTemp(ch2),voltToTemp(ch3),voltToTemp(ch4))
 
 	with open(filename, "a") as file:
 		file.write(out + "\n")
@@ -36,7 +36,7 @@ def readAD():
 	print out
 
 def voltToTemp(volt):
-	return (volt/1.22)-273.15	#milivolt / Kelvin result is Celcius
+	return (volt/9.12)-273.15	#milivolt / Kelvin result is Celcius
 
 def loop():
 	try:
