@@ -7,7 +7,7 @@ from Adafruit_ADS1x15 import ADS1x15
 ADS1015 = 0x00  # 12-bit ADC
 ADS1115 = 0x01	# 16-bit ADC
 
-gain = 4096
+gain = 6144
 sps = 250
 
 #AD Init
@@ -27,13 +27,16 @@ def readAD():
 	ch2 = adc1.readADCSingleEnded(1, gain, sps) / 1000
 	ch3 = adc1.readADCSingleEnded(2, gain, sps) / 1000
 	ch4 = adc1.readADCSingleEnded(3, gain, sps) / 1000
-	
+
 	out = "%s,%.6f,%.6f,%.6f,%.6f" % (t, ch1, ch2, ch3, ch4)	
 
 	with open(filename, "a") as file:
 		file.write(out + "\n")
 
 	print out
+
+def voltToTemp(volt):
+	return (volt/1.22)-273.15	#milivolt / Kelvin result is Celcius
 
 def loop():
 	try:
