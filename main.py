@@ -1,5 +1,7 @@
 import time, sys, os.path, threading, atexit, bottle
 from bottle import jinja2_template as template, static_file, request, app
+from bottle import response
+from json import dumps
 
 sys.path.append('Adafruit_ADS1x15')     #otherwise not possible to import lib
 from Adafruit_ADS1x15 import ADS1x15
@@ -92,6 +94,10 @@ def index():
     print dataToCSV
     return "<html><h1>%s</h1></html>" % (",".join(dataToCSV))
 
+@web.route('/api/live/')
+def apiLive():
+    response.content_type = 'application/json'
+    return dumps(dataToCSV)
 
 print "  _______ _                               __  __             _ _             "
 print " |__   __| |                             |  \/  |           (_) |            "
