@@ -20,31 +20,32 @@ adc1 = ADS1x15(address= 0x48, ic=ADS1115)
 
 # variables that are accessible from anywhere
 runThread = True
-dataToCSV = ["0", "0", "0", "0", "0", "0", "0", "0", "0"]
+dataToCSV = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 # lock to control access to variable
 dataLock = threading.Lock()
 # thread handler
-yourThread = threading.Thread()
+worker = threading.Thread()
 
 def readAD():
+	#fill list with new data
+	dataToCSV[0] = time.strftime("%H:%M")
+
+	for i in range(1, 9):
+		if i < 5:
+			dataToCSV[i] = round(voltToTemp(adc1.readADCSingleEnded(i-1, gain, sps)),2)
+		else:
+			dataToCSV[i] = i-5
+
+def toCSV(data):
 	directory = "log"
 	filename = directory + "/" + time.strftime("%d%m%y%H") + ".csv"
 	
 	try:				#check directory existance
 		os.mkdir(directory)
 	except Exception:
-		pass
-	
-	#fill list with new data
-	dataToCSV[0] = time.strftime("%H:%M")
+		pass	
 
-	for i in range(1, 9):
-		if i < 5:
-			dataToCSV[i] = "%.2f" % (voltToTemp(adc1.readADCSingleEnded(i-1, gain, sps)))
-		else:
-			dataToCSV[i] = "%i" %(i-5)
-
-	out = ",".join(dataToCSV)	
+	out = ",".join(str(x) for x in data)	
 	
 	#write dataline to CSV
 	with open(filename, "a") as file:
@@ -59,30 +60,29 @@ def create_app():
     app = bottle
 
     def interrupt():
-        global yourThread
-        yourThread.cancel()
+        global worker
+        worker.cancel()
 
-    def doStuff():
+    def doWorker():
         global dataToCSV
-        global yourThread
+        global worker
 
         with dataLock:
-        # Do your stuff with commonDataStruct Here
             readAD()
-        # Set the next thread to happen
+	    toCSV(dataToCSV)
+	
         if runThread:
-            yourThread = threading.Timer(POOL_TIME, doStuff, ())
-            yourThread.start()
+            worker = threading.Timer(POOL_TIME, doWorker, ())
+            worker.start()
 
-    def doStuffStart():
-        # Do initialisation stuff here
-        global yourThread
-        # Create your thread
-        yourThread = threading.Timer(POOL_TIME, doStuff, ())
-        yourThread.start()
+    def doWorkerStart():
+        # If neaded do init of global vars here
+        global worker
+        worker = threading.Timer(0, doWorker, ())
+        worker.start()
 
     # Initiate
-    doStuffStart()
+    doWorkerStart()
     # When kill Bottle (SIGTERM), clear the trigger for the next thread
     atexit.register(interrupt)
     return app
@@ -91,13 +91,24 @@ web = create_app()
 
 @web.route('/')
 def index():
-    print dataToCSV
-    return "<html><h1>%s</h1></html>" % (",".join(dataToCSV))
+    return template('web/index.html');
 
 @web.route('/api/live/')
 def apiLive():
     response.content_type = 'application/json'
     return dumps(dataToCSV)
+
+@web.route('/js/<filename:re:.*\.js>')
+def javascript(filename):
+    return static_file(filename, root='web/js')
+
+@web.route('/css/<filename:re:.*\.css>')
+def stylesheet(filename):
+    return static_file(filename, root='web/css')
+
+@web.route('/font/<filename:re:.*\.*>')
+def fonts(filename):
+    return static_file(filename, root='web/fonts')
 
 print "  _______ _                               __  __             _ _             "
 print " |__   __| |                             |  \/  |           (_) |            "
