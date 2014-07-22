@@ -6,7 +6,7 @@ from json import dumps
 sys.path.append('Adafruit_ADS1x15')     #otherwise not possible to import lib
 from Adafruit_ADS1x15 import ADS1x15
 
-POOL_TIME = 5 #Seconds
+POOL_TIME = 60 #Seconds
 
 #AD Config
 ADS1015 = 0x00  # 12-bit ADC
@@ -92,6 +92,15 @@ web = create_app()
 @web.route('/')
 def index():
     return template('web/index.html');
+    
+@web.route('/history')
+def history():
+    return template('web/history.html');
+
+@web.route('/log/<filename:re:.*\.csv>')
+def log(filename):
+    return static_file(filename, root='log')
+
 
 @web.route('/api/live/')
 def apiLive():
