@@ -120,209 +120,58 @@
 
     <script src="http://code.highcharts.com/highcharts.js"></script>
     <script src="http://code.highcharts.com/highcharts-more.js"></script>
-    <script src="http://code.highcharts.com/modules/solid-gauge.src.js"></script>
 	<script>
-	var options = {
-        chart: {
-        	renderTo: 'graph',
-            type: 'line'
-        },
-        title: {
-            text: '22 July 2014, 11:00'
-        },
-        xAxis: {
-            categories: [/*'Apples', 'Bananas', 'Oranges'*/]
-        },
-        yAxis: {
-            title: {
-                text: 'Temperature (°C)'
-            }
-        },
-        credits: {
-				enabled: false
-		},
-        series: [{
-            name: 'Channel 1',
-            tooltip: {
-				valueSuffix: ' °C'
-			}
-        }, {
-            name: 'Channel 2',
-            tooltip: {
-				valueSuffix: ' °C'
-			}
-        }, {
-            name: 'Channel 3',
-            tooltip: {
-				valueSuffix: ' °C'
-			}
-        }, {
-            name: 'Channel 4',
-            tooltip: {
-				valueSuffix: ' °C'
-			}
-        }, {
-            name: 'Channel 5',
-            tooltip: {
-				valueSuffix: ' °C'
-			}
-        }, {
-            name: 'Channel 6',
-            tooltip: {
-				valueSuffix: ' °C'
-			}
-        }, {
-            name: 'Channel 7',
-            tooltip: {
-				valueSuffix: ' °C'
-			}
-        }, {
-            name: 'Channel 8',
-            tooltip: {
-				valueSuffix: ' °C'
-			}
-        }]
-    };
-	$.get('http://148.6.182.65:8080/log/22071410.csv', function(data) {
-		// Split the lines
-		var lines = data.split('\n');
-		var chart = new Highcharts.Chart(options);
+	$.get('http://148.6.182.65:8080/log/22071410.csv', function(csvData) {
+		var series = [],
+			lines = csvData.split('\n'),
+			rows;
 		
-		/*var series = [{
-			data: [[0, 29.9], 
-                [1, 71.5], 
-                [3, 106.4]]
-		},{
-			data: [[0, 29.9], 
-                [1, 71.5], 
-                [3, 106.4]]
-		}];
-		series[1].data[1] = [0, 100]
-		*/
-		
-		var series = [];
-        	
-        var ch1 = [];
-        var ch2 = [];
-        var ch3 = [];
-        var ch4 = [];
-        var ch5 = [];
-        var ch6 = [];
-        var ch7 = [];
-        var ch8 = [];
-		
-		
-		
-		lines.forEach(function(line, lineNo) {
-			var items = line.split(',');
-			var dataArray = [];
-			items.forEach(function(item, itemNo){
-				if (itemNo == 0) {
-					options.xAxis.categories.push(item);
-				} else {
-					dataArray.push(parseFloat(item));
+		var cat = [];
+	
+		$.each(lines, function(i, line){
+			rows = line.split(',');
+			if(i == 0) {
+				for(i=1; i<rows.length; i++) {
+					series.push({
+						name: "Channel " + i,
+						data: []
+					});
 				}
-			});
-			
-			dataArray.forEach(function(item, itemNo){
-				switch (itemNo) {
-					case 0:
-						ch1.push(item);
-						break;
-					case 1:
-						ch2.push(item);
-						break;
-					case 2:
-						ch3.push(item);
-						break;
-					case 3:
-						ch4.push(item);
-						break;
-					case 4:
-						ch5.push(item);
-						break;
-					case 5:
-						ch6.push(item);
-						break;
-					case 6:
-						ch7.push(item);
-						break;
-					case 7:
-						ch8.push(item);
-						break;
-				}
-			});
+				return;
+			}
+		
+		
+			for(i=1; i<rows.length; i++) {
+				series[i-1].data.push([ 
+					rows[0], 
+					parseFloat(rows[i])
+				]);
+				cat.push(rows[0]);
+			}	
 		});
-		chart.addSeries({
-                data: ch1
-            });
-		chart.addSeries({
-                data: ch1
-            });
-        chart.addSeries({
-                data: ch2
-            });
-        chart.addSeries({
-                data: ch3
-            });
-        chart.addSeries({
-                data: ch4
-            });
-        chart.addSeries({
-                data: ch5
-            });
-        chart.addSeries({
-                data: ch6
-            });
-        chart.addSeries({
-                data: ch7
-            });
-        chart.addSeries({
-                data: ch8
-            });
-		console.log(series);
 		
+		var chart = new Highcharts.Chart({
+			chart: {
+				renderTo: 'graph'
+			},
+			title: {
+				text: '22 July 2014, 11:00'
+			},
+			xAxis: {
+				categories: cat
+			},
+			yAxis: {
+				title: {
+					text: 'Temperature (°C)'
+				}
+			},
+			credits: {
+					enabled: false
+			},
+			series: series
+		});
 		
-	
-		// Iterate over the lines and add categories or series
-		/*$.each(lines, function(lineNo, line) {
-			var items = line.split(',');
-		
-			// header line containes categories
-			/*if (lineNo == 0) {
-				$.each(items, function(itemNo, item) {
-					if (itemNo > 0) options.xAxis.categories.push(item);
-				});
-			}
-		
-			// the rest of the lines contain data with their name in the first 
-			// position
-			else {
-			
-				
-				$.each(items, function(itemNo, item) {
-					console.log(item);
-					console.log(itemNo);
-					console.log(lineNo);
-					if (itemNo == 0) {
-						options.xAxis.categories.push(item);
-					} else {
-						dataArray[itemNo][lineNo] = 1;
-					}
-				});
-			
-				
-	
-			//}
-		});*/
-		//series.data.push(dataArray);
-		//options.series.push(series);
-		console.log(options);
-		// Create the chart
-		//var chart = new Highcharts.Chart(options);
-		console.log(chart);
-		
-	});
+		});
 	</script>
   </body>
 </html>
