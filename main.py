@@ -7,6 +7,7 @@ sys.path.append('Adafruit_ADS1x15')     #otherwise not possible to import lib
 from Adafruit_ADS1x15 import ADS1x15
 
 POOL_TIME = 60 #Seconds
+DIRECTORY = "log"
 
 #AD Config
 ADS1015 = 0x00  # 12-bit ADC
@@ -19,7 +20,6 @@ sps = 250
 adc1 = ADS1x15(address= 0x48, ic=ADS1115)
 
 # variables that are accessible from anywhere
-runThread = True
 dataToCSV = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 # lock to control access to variable
 dataLock = threading.Lock()
@@ -37,11 +37,10 @@ def readAD():
 			dataToCSV[i] = i-5
 
 def toCSV(data):
-	directory = "log"
-	filename = directory + "/" + time.strftime("%d%m%y%H") + ".csv"
+	filename = DIRECTORY + "/" + time.strftime("%d%m%y%H") + ".csv"
 	
 	try:				#check directory existance
-		os.mkdir(directory)
+		os.mkdir(DIRECTORY)
 	except Exception:
 		pass	
 
@@ -69,16 +68,15 @@ def create_app():
 
         with dataLock:
             readAD()
-	    toCSV(dataToCSV)
+            toCSV(dataToCSV)
 	
-        if runThread:
-            worker = threading.Timer(POOL_TIME, doWorker, ())
-            worker.start()
+        worker = threading.Timer(POOL_TIME, doWorker, ())
+        worker.start()
 
     def doWorkerStart():
         # If neaded do init of global vars here
         global worker
-        worker = threading.Timer(0, doWorker, ())
+        worker = threading.Timer(1, doWorker, ())
         worker.start()
 
     # Initiate
@@ -95,12 +93,11 @@ def index():
     
 @web.route('/history')
 def history():
-    return template('web/history.html');
+    return template('web/history.html', files = sorted(os.listdir(DIRECTORY), reverse=True));
 
 @web.route('/log/<filename:re:.*\.csv>')
 def log(filename):
     return static_file(filename, root='log')
-
 
 @web.route('/api/live/')
 def apiLive():
@@ -129,5 +126,5 @@ print "                                                                         
 print "                                                                             "
 
 web.run(host='0.0.0.0', port=8080, debug=False)
-runThread = False
+worker.cancel()
 

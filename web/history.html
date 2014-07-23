@@ -55,7 +55,7 @@
 
           <div class="row placeholders">
           	<div class="col-md-12">
-            <div id="graph" style="width:100%; height:400px;"></div>
+            <div id="graph" style="width:100%; height:500px;"></div>
             </div>
           </div>
 
@@ -72,42 +72,25 @@
                 </tr>
               </thead>
               <tbody>
+              {% set prev = '' %}
+              {% set m = ['January','February','March','April','May','June','July','August','September','October','November','December'] %}
+              {% for item in files %}
               	<tr>
-              		<td rowspan="3"><strong>22 July</strong></td>
-              		<td>11:00</td>
-              		<td>22071411.csv</td>
-              		<td><span class="glyphicon glyphicon-download-alt"></span></td>
-              		<td><span class="glyphicon glyphicon-stats"></span></td>
+              		{% if prev == item[0:6] %}
+              		<td></td>
+              		{% else %}
+              		<td id='{{item[0:6]}}'><strong>{{ item[0:2] }} {{ m[item[2:4]|int()-1] }} {{ item[4:6] }}</strong></td>
+              		{% endif %}
+              		<td>{{ item[6:8] }}:00</td>
+              		<td>{{ item }}</td>
+              		<td><a href="log/{{ item }}"><span class="glyphicon glyphicon-download-alt"></span></a></td>
+              		<td><a href="#" onclick="getChart('{{ item }}');return false;"><span class="glyphicon glyphicon-stats"></span></a></td>
               	</tr>
-              	<tr>
-              		<td>12:00</td>
-              		<td>22071411.csv</td>
-              		<td><span class="glyphicon glyphicon-download-alt"></span></td>
-              		<td><span class="glyphicon glyphicon-stats"></span></td>
-              	</tr>
-              	<tr>
-              		<td>13:00</td>
-              		<td>22071411.csv</td>
-              		<td><span class="glyphicon glyphicon-download-alt"></span></td>
-              		<td><span class="glyphicon glyphicon-stats"></span></td>
-              	</tr>
-              	<tr>
-              		<td rowspan="2"><strong>23 July</strong></td>
-              		<td>11:00</td>
-              		<td>22071411.csv</td>
-              		<td><span class="glyphicon glyphicon-download-alt"></span></td>
-              		<td><span class="glyphicon glyphicon-stats"></span></td>
-              	</tr>
-              	<tr>
-              		<td>12:00</td>
-              		<td>22071411.csv</td>
-              		<td><span class="glyphicon glyphicon-download-alt"></span></td>
-              		<td><span class="glyphicon glyphicon-stats"></span></td>
-              	</tr>
+              	{% set prev = item[0:6]%}
+              {% endfor %}
               </tbody>
             </table>
-          </div>
-          
+          </div>  
         </div>
       </div>
     </div>
@@ -121,57 +104,60 @@
     <script src="http://code.highcharts.com/highcharts.js"></script>
     <script src="http://code.highcharts.com/highcharts-more.js"></script>
 	<script>
-	$.get('http://148.6.182.65:8080/log/22071410.csv', function(csvData) {
-		var series = [],
-			lines = csvData.split('\n'),
-			rows;
+	var m = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+	function getChart(filename){
+		$.get('log/'+filename, function(csvData) {
+			var series = [],
+				lines = csvData.split('\n'),
+				rows;
 		
-		var cat = [];
+			var cat = [];
+			var title = filename.substring(0,2) + ' ' + m[parseInt(filename.substring(2,4))-1] +', '+filename.substring(6,8)+':00';
 	
-		$.each(lines, function(i, line){
-			rows = line.split(',');
-			if(i == 0) {
+			$.each(lines, function(i, line){
+				rows = line.split(',');
+				if(i == 0) {
+					for(i=1; i<rows.length; i++) {
+						series.push({
+							name: "Channel " + i,
+							data: []
+						});
+					}
+					return;
+				}
+		
+		
 				for(i=1; i<rows.length; i++) {
-					series.push({
-						name: "Channel " + i,
-						data: []
-					});
+					series[i-1].data.push([ 
+						rows[0], 
+						parseFloat(rows[i])
+					]);
 				}
-				return;
-			}
-		
-		
-			for(i=1; i<rows.length; i++) {
-				series[i-1].data.push([ 
-					rows[0], 
-					parseFloat(rows[i])
-				]);
 				cat.push(rows[0]);
-			}	
-		});
-		
-		var chart = new Highcharts.Chart({
-			chart: {
-				renderTo: 'graph'
-			},
-			title: {
-				text: '22 July 2014, 11:00'
-			},
-			xAxis: {
-				categories: cat
-			},
-			yAxis: {
+			});
+			var chart = new Highcharts.Chart({
+				chart: {
+					renderTo: 'graph'
+				},
 				title: {
-					text: 'Temperature (°C)'
-				}
-			},
-			credits: {
-					enabled: false
-			},
-			series: series
+					text: title
+				},
+				xAxis: {
+					categories: cat
+				},
+				yAxis: {
+					title: {
+						text: 'Temperature (°C)'
+					}
+				},
+				credits: {
+						enabled: false
+				},
+				series: series
+			});
 		});
-		
-		});
+	}
+	getChart("{{files[0]}}");
 	</script>
   </body>
 </html>
