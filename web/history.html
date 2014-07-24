@@ -110,8 +110,7 @@
 			var series = [],
 				lines = csvData.split('\n'),
 				rows;
-		
-			var cat = [];
+			
 			var title = filename.substring(0,2) + ' ' + m[parseInt(filename.substring(2,4))-1] +', '+filename.substring(6,8)+':00';
 	
 			$.each(lines, function(i, line){
@@ -133,7 +132,6 @@
 						parseFloat(rows[i])
 					]);
 				}
-				cat.push(rows[0]);
 			});
 			var chart = new Highcharts.Chart({
 				chart: {
@@ -143,12 +141,16 @@
 					text: title
 				},
 				xAxis: {
-					categories: cat
+					categories: [],
+					tickInterval: 3
 				},
 				yAxis: {
 					title: {
 						text: 'Temperature (°C)'
 					}
+				},
+				tooltip: {
+					valueSuffix: ' °C'
 				},
 				credits: {
 						enabled: false

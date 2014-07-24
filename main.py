@@ -18,6 +18,7 @@ sps = 250
 
 #AD Init
 adc1 = ADS1x15(address= 0x48, ic=ADS1115)
+adc2 = ADS1x15(address= 0x49, ic=ADS1115)
 
 # variables that are accessible from anywhere
 dataToCSV = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -34,7 +35,7 @@ def readAD():
 		if i < 5:
 			dataToCSV[i] = round(voltToTemp(adc1.readADCSingleEnded(i-1, gain, sps)),2)
 		else:
-			dataToCSV[i] = i-5
+			dataToCSV[i] = round(voltToTemp(adc2.readADCSingleEnded(i-5, gain, sps)),2)
 
 def toCSV(data):
 	filename = DIRECTORY + "/" + time.strftime("%d%m%y%H") + ".csv"
