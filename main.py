@@ -1,3 +1,4 @@
+#!/usr/bin/env pythonRoot
 import time, sys, os.path, threading, atexit, bottle
 from bottle import jinja2_template as template, static_file, request, app
 from bottle import response
