@@ -1,5 +1,5 @@
 #!/usr/bin/env pythonRoot
-import time, sys, os.path, threading, atexit, bottle
+import time, sys, os.path, threading, atexit, bottle, subprocess
 from bottle import jinja2_template as template, static_file, request, app
 from bottle import response
 from json import dumps
@@ -117,6 +117,10 @@ def stylesheet(filename):
 @web.route('/font/<filename:re:.*\.*>')
 def fonts(filename):
     return static_file(filename, root='web/fonts')
+    
+@web.route('/shutdown')
+def shutdown():
+	subprocess.call(["sudo", "shutdown", "-h", "now"])
 
 print "  _______ _                               __  __             _ _             "
 print " |__   __| |                             |  \/  |           (_) |            "
